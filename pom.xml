@@ -1,0 +1,109 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>ca.senecale</groupId>
+	<artifactId>jmeter-javalib-docker</artifactId>
+	<version>0.0.1</version>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<java.version>11</java.version>
+		<maven.compiler.release>11</maven.compiler.release>
+		<jmeter.version>5.6.3</jmeter.version>
+		<docker.repo>senecale</docker.repo>
+	</properties>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.junit</groupId>
+				<artifactId>junit-bom</artifactId>
+				<version>5.8.1</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.apache.jmeter</groupId>
+			<artifactId>ApacheJMeter_core</artifactId>
+			<version>${jmeter.version}</version>
+			<scope>provided</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>xml-apis</groupId>
+					<artifactId>xml-apis</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<version>3.8.1</version>
+					<configuration>
+						<source>${java.version}</source>
+						<target>${java.version}</target>
+					</configuration>
+				</plugin>
+
+				<plugin>
+					<groupId>io.fabric8</groupId>
+					<artifactId>docker-maven-plugin</artifactId>
+					<version>0.40.3</version>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+
+		<plugins>
+			<plugin>
+				<groupId>io.fabric8</groupId>
+				<artifactId>docker-maven-plugin</artifactId>
+
+				<configuration>
+					<images>
+						<image>
+							<name>
+								${docker.repo}/${project.name}:${project.version}</name>
+							<build>
+								<args>
+									<JMETER_VERSION>${jmeter.version}</JMETER_VERSION>
+								</args>
+								<dockerFile>${project.basedir}/docker/Dockerfile</dockerFile>
+
+								<assemblies>
+									<assembly>
+										<name>launch</name>
+										<inline>
+											<files>
+												<file>
+													<source>docker/launch.sh</source>
+													<fileMode>777</fileMode>
+												</file>
+												<file>
+													<source>
+														docker/user.properties</source>
+												</file>
+											</files>
+										</inline>
+									</assembly>
+									<assembly>
+										<descriptorRef>
+											artifact-with-dependencies</descriptorRef>
+									</assembly>
+								</assemblies>
+							</build>
+						</image>
+					</images>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>
